@@ -214,7 +214,7 @@ function createRender(options) {
   function mountComponent(vnode, container, anchor) {
     const isFuntional = typeof vnode.type === 'function';
 
-    const componentOptions = vnode.type;
+    let componentOptions = vnode.type;
     if (isFuntional) {
       componentOptions = {
         render: vnode.type,
@@ -367,7 +367,7 @@ function createRender(options) {
     if (hasPropsChange(n1.props, n2.props)) {
       const [nextProps] = resolveProps(n2.type.props, n2.props);
       for (const k in nextProps) {
-        props[key] = nextProps[k];
+        props[k] = nextProps[k];
       }
       for (const k in props) {
         if (!(k in props)) {
@@ -537,3 +537,40 @@ const renderer = createRender({
 });
 
 export { renderer }
+export { defineAsyncComponent } from './async-component.js';
+
+export function nextTick(fn) {
+  return fn ? Promise.resolve().then(this ? fn.bind(this) : fn) : Promise.resolve();
+}
+
+function createVNode(type, props = null, children = null){
+  if(children.length === 1 && typeof children[0] === 'string'){
+    children = children[0]
+  }
+  return {
+    type,
+    props,
+    children,
+  }
+}
+
+const isObject = (val) => val !== null && typeof val === 'object';
+const isArray = Array.isArray;
+export function h(type, propsOrChildren, children) {
+  if (arguments.length === 2) {
+      if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
+          // props without children
+          return createVNode(type, propsOrChildren);
+      }else {
+          // omit props
+          return createVNode(type, null, propsOrChildren);
+      }
+  }else {
+      if (arguments.length > 3) {
+          children = Array.prototype.slice.call(arguments, 2);
+      }else if (arguments.length === 3) {
+          children = [children];
+      }
+      return createVNode(type, propsOrChildren, children);
+  }
+}
