@@ -63,4 +63,4 @@ function proxyRefs(target) {
 // setup-return的对象会传给proxyRefs 
 // const newObj = proxyRefs({...toRefs(obj)});
 
-export { ref, toRef, toRefs, shallowRef };
+export { ref, toRef, toRefs, shallowRef, proxyRefs };

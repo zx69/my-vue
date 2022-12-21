@@ -1,6 +1,6 @@
 import { Text, Fragment } from './types.js';
 import getSequence from './getSequence.js';
-import { effect, reactive, shallowReadonly, shallowReactive } from '../reactive/index.js';
+import { effect, reactive, shallowReadonly, shallowReactive,proxyRefs } from '../reactive/index.js';
 import { queuePostFlushCb, queueJob } from './queue-job.js';
 import { currentInstance, setCurrentInstance } from './instance.js';
 
@@ -49,11 +49,11 @@ function createRender(options) {
       }
     }
     const needTranstion = vnode.transtion;
-    if(needTranstion){
+    if (needTranstion) {
       vnode.transtion.beforeEnter(el);
     }
     insert(el, container, anchor);
-    if(needTranstion){
+    if (needTranstion) {
       vnode.transtion.enter(el);
     }
   }
@@ -64,7 +64,11 @@ function createRender(options) {
     let j = 0;
     let oldVNode = oldChildren[j];
     let newVNode = newChildren[j];
-    while (oldVNode.key === newVNode.key) {
+    // const oldLen = oldChildren.length
+    // const newLen = newChildren.length
+    // const commonLength = Math.min(oldLen, newLen)
+
+    while (oldVNode && newVNode && oldVNode.key === newVNode.key) {
       patch(oldVNode, newVNode, container);
       j++;
       oldVNode = oldChildren[j];
@@ -75,7 +79,7 @@ function createRender(options) {
     oldVNode = oldChildren[oldEnd];
     newVNode = newChildren[newEnd];
 
-    while (oldVNode.key === newVNode.key) {
+    while (oldVNode && newVNode && oldVNode.key === newVNode.key) {
       patch(oldVNode, newVNode, container);
       oldEnd--;
       newEnd--;
@@ -282,7 +286,7 @@ function createRender(options) {
       if (render) console.error('setup 函数返回渲染函数, render选项将被忽略');
       render = setupResult;
     } else {
-      setupState = setupResult;
+      setupState = proxyRefs(setupResult || {});
     }
 
     // component保存实例信息
@@ -324,10 +328,9 @@ function createRender(options) {
     })
     created && created.call(renderContext);
 
-    effect(() => {
-      console.log(render);
+    instance.update = effect(() => {
       const subTree = render.call(renderContext, renderContext);// 改变this, 使render内可用this获取data
-      console.log(instance);
+      // console.log(instance);
 
       if (!instance.isMounted) {
         beforeMounted && beforeMounted.call(renderContext)
@@ -374,6 +377,7 @@ function createRender(options) {
           delete props[k]
         }
       }
+      instance.update()
     }
   }
 
@@ -383,7 +387,7 @@ function createRender(options) {
     // tagName不一样直接替换
     if (n1 && n1.type !== n2.type) {
       unmount(n1);
-      n1 = null; // caontiner._vnode = null
+      n1 = null; // container._vnode = null
     }
     const { type } = n2;
     if (typeof type === 'string') {
@@ -456,9 +460,9 @@ function createRender(options) {
     const parent = vnode.el.parentNode;
     if (parent) {
       const performRemove = () => parent.removeChild(vnode.el);
-      if(needTranstion){
+      if (needTranstion) {
         vnode.transtion.leave(vnode.el, performRemove)
-      }else{
+      } else {
         performRemove();
       }
     }
@@ -521,7 +525,7 @@ const renderer = createRender({
         }
       }
     } else if (key === 'class') {
-      el.className = newValue || '';
+      el.className = nextValue || '';
     } else if (shouldSetAsProps(el, key, nextValue)) {
       const type = typeof el[key];
       // 矫正无属性值的情况
@@ -543,34 +547,42 @@ export function nextTick(fn) {
   return fn ? Promise.resolve().then(this ? fn.bind(this) : fn) : Promise.resolve();
 }
 
-function createVNode(type, props = null, children = null){
-  if(children.length === 1 && typeof children[0] === 'string'){
+function createVNode(type, props = null, children = null) {
+  if (children && children.length === 1 && typeof children[0] === 'string') {
     children = children[0]
   }
   return {
     type,
     props,
-    children,
+    __v_isVNode: true, // vnode的标识
+    children: Array.isArray(children) ? children.map((child, i) => {
+      return {...child, ...(isVNode(child) && !('key' in child) ? {key: i} : {})};
+    }) : children,
   }
 }
 
 const isObject = (val) => val !== null && typeof val === 'object';
 const isArray = Array.isArray;
+const isVNode = (val) => val ? val.__v_isVNode === true : false;
 export function h(type, propsOrChildren, children) {
-  if (arguments.length === 2) {
-      if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
-          // props without children
-          return createVNode(type, propsOrChildren);
-      }else {
-          // omit props
-          return createVNode(type, null, propsOrChildren);
+  const l = arguments.length;
+  if (l === 2) {
+    if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
+      // single vnode without props
+      if (isVNode(propsOrChildren)) {
+        return createVNode(type, null, [propsOrChildren]);
       }
-  }else {
-      if (arguments.length > 3) {
-          children = Array.prototype.slice.call(arguments, 2);
-      }else if (arguments.length === 3) {
-          children = [children];
-      }
-      return createVNode(type, propsOrChildren, children);
+      // props without children
+      return createVNode(type, propsOrChildren);
+    } else {
+      // omit props
+      return createVNode(type, null, propsOrChildren);
+    }
   }
+  if (l > 3) {
+    children = Array.prototype.slice.call(arguments, 2);
+  } else if (l === 3 && isVNode(children)) {
+    children = [children];
+  }
+  return createVNode(type, propsOrChildren, children);
 }
