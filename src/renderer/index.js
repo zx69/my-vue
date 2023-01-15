@@ -98,6 +98,10 @@ function createRender(options) {
       }
     } else {
       const count = newEnd - j + 1;
+      // if(count < 0){
+      //   console.log(newEnd, j, count);
+      //   console.log(oldVNode, newVNode)
+      // }
       const source = new Array(count);
       source.fill(-1);
 
@@ -383,12 +387,16 @@ function createRender(options) {
 
 
   function patch(n1, n2, container, anchor) {
-    console.log('patch', n2.type)
+    // console.log('patch', n2)
+    if(!n1 && !n2){
+      return;
+    }
     // tagName不一样直接替换
     if (n1 && n1.type !== n2.type) {
       unmount(n1);
       n1 = null; // container._vnode = null
     }
+
     const { type } = n2;
     if (typeof type === 'string') {
       // 普通HTML

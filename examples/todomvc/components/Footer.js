@@ -2,6 +2,7 @@ import { renderer, nextTick, h } from '../../../src/index.js';
 import { useState,useCompouteds, removeCompleted , switchVisiBility } from '../utils/uses.js';
 
 const FooterComp = {
+  name: 'FooterComp',
   setup() {
     const state = useState();
     return {

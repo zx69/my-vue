@@ -2,6 +2,7 @@ import { renderer, nextTick, h } from '../../../src/index.js';
 import { useState, addTodo } from '../utils/uses.js';
 
 const HeaderComp = {
+  name: 'HeaderComp',
   setup() {
     const state = useState();
     return {

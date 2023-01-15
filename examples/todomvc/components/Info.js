@@ -1,6 +1,7 @@
 import { renderer, nextTick, h, defineAsyncComponent } from '../../../src/index.js';
 
 const InfoComp = {
+  name: 'InfoComp',
   render() {
     return h('footer', { class: 'info' }, [
       h('p', 'Double-click to edit a todo'),

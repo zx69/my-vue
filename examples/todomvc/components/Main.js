@@ -2,6 +2,7 @@ import { renderer, nextTick, h, onMounted } from '../../../src/index.js';
 import { onTodosMounted, useCompouteds, useState, handleEditTodo, removeTodo, cancelEdit, doneEdit } from "../utils/uses.js";
 
 const MainComp = {
+  name: 'MainComp',
   setup() {
     const state = useState();
     onMounted(onTodosMounted);

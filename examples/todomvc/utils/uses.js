@@ -50,6 +50,7 @@ export function addTodo() {
     title: value,
     completed: false
   })
+  console.log("🚀 ~ file: uses.js:54 ~ state.todos", state.todos)
   state.newTodo = ''
 }
 
