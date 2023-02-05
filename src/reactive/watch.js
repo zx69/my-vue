@@ -53,4 +53,5 @@ function watch(source, cb, options = {}) {
   }
 }
 
+export {watch}
 export default watch;

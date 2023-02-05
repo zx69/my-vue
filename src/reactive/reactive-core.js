@@ -36,7 +36,7 @@ export function effect(fn, options = {}) {
 }
 
 export function track(target, key) {
-  console.warn('track: ', target, key);
+  // console.warn('track: ', target, key);
   if (!activeEffect || !shouldTrack) {
     return target[key];
   }
@@ -157,7 +157,7 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       if (!isReadonly && typeof key !== 'symbol') {
         track(target, key);
       }
-      console.log(target, key);
+      // console.log(target, key);
       const res = Reflect.get(target, key, receiver);
       if (isShallow) {
         return res;
@@ -196,7 +196,6 @@ function createReactive(obj, isShallow = false, isReadonly = false) {
       return Reflect.has(target, key);
     },
     ownKeys(target) {
-      console.log(111, target);
       track(target, Array.isArray(target) ? 'length' : ITERATE_KEY);
       return Reflect.ownKeys(target);
     },
