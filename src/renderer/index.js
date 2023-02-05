@@ -68,7 +68,11 @@ function createRender(options) {
     // const newLen = newChildren.length
     // const commonLength = Math.min(oldLen, newLen)
 
-    while (oldVNode && newVNode && oldVNode.key === newVNode.key) {
+    while (
+      oldVNode 
+      && newVNode 
+      && oldVNode.key === newVNode.key
+    ) {
       patch(oldVNode, newVNode, container);
       j++;
       oldVNode = oldChildren[j];
@@ -79,12 +83,19 @@ function createRender(options) {
     oldVNode = oldChildren[oldEnd];
     newVNode = newChildren[newEnd];
 
-    while (oldVNode && newVNode && oldVNode.key === newVNode.key) {
+    while (
+      oldVNode 
+      && newVNode 
+      && oldVNode.key === newVNode.key
+    ) {
       patch(oldVNode, newVNode, container);
       oldEnd--;
       newEnd--;
       oldVNode = oldChildren[oldEnd];
       newVNode = newChildren[newEnd];
+    }
+    if((j> oldChildren.length && j> newChildren.length )|| (oldEnd < 0 && newEnd < 0)){
+      return;
     }
     if (j > oldEnd && j <= newEnd) {
       const anchorIdx = newEnd + 1;
@@ -347,7 +358,9 @@ function createRender(options) {
         });
       } else {
         beforeUpdate && beforeUpdate.call(renderContext)
-        patch(instance.subTree, subTree, container, anchor);
+        // Promise.resolve().then(() => {
+          patch(instance.subTree, subTree, container, anchor);
+        // })
         updated && updated.call(renderContext)
       }
       instance.subTree = subTree;
@@ -381,7 +394,7 @@ function createRender(options) {
           delete props[k]
         }
       }
-      instance.update()
+      // instance.update()
     }
   }
 
