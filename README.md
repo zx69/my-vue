@@ -69,11 +69,24 @@ const vue = (function(exports){
 - Attrs主要用于html上, 不区分大小写; Props主要用于js上, 区分大小写
 - 很多Attrs在DOM对象上有同名的Props
   - 有些不同名, 如class(attrs上)与className(props上)
-- 有些Attrs没有对应的Props
-  - 如`aria-xxx`
-- 有些Props没有对应的Attrs
-  - 如`el.textContent`
+  - 有些Attrs没有对应的Props, 如`aria-xxx`
+  - 有些Props没有对应的Attrs, 如`el.textContent`
+- 关系: Attrs的作用是设置与之对应的Props的**初始值**
+  - 值改变后Props存储当前值,而Attrs始终保持初始值, 如`<input>`的`value`属性
+  - HTML初始化时,浏览器会解析Attrs并设置合适的Props
+    - Attrs提供值不合法时, Props会取默认值 
+- 读写方式:
+  - Attrs: `el.setAttribute(key, val)` | `el.getAttribute(key)`
+  - Props: `el[key]` | `el[key] = val`
 
+- `setAttribute`设置的`val`值总会被字符串化
+  - `btn.setAttribute('disabled', false)`等价于 `btn.setAttribute('disabled', 'false')`
+- 特殊对应关系:
+  - 布尔类型的`props`, 如按钮的`disabled`,只要有该属性都会识别为`true`, 而不会管具体的属性值
+    - eg: `<button disabled />`
+  - 特殊情况, 如`<input form="form1">`
+
+=> vue处理Attrs的方法: 优先设置Props;当值为空字符串时手动矫正为true;再使用`setAttribute`兜底处理特殊情况
 
 #### 杂项
 - vue3中设置不支持选项式API: 定义`__VUE_OPTION_API__ = false`. 
